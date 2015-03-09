@@ -10,14 +10,27 @@
 
 // the current address in the EEPROM (i.e. which byte
 // we're going to write to next)
+#define IO_Number 10
+#define IO_BitLength 1
 
+#define IO_MODE_BeginEEPromAddress 0
+#define IO_MODE_SET "#IOMODESET"
+
+#define IO_SET_BeginEEPromAddress 10
+#define IO_SET "#IOSET"
 
 void setup()
 {
     Serial.begin(9600);
-    writeEEP("meme$",'$');
+    //writeEEP("meme$",'$');
+    
+    getUserCommand("#IOMODESET,B21122000000011$");
+    getUserCommand("#IOSET,P21122000000011$");
     String n=readEEP(512);
     Serial.println(n);
+    
+    
+    
 }
 
 void loop()
@@ -25,6 +38,33 @@ void loop()
 
 }
 
+
+//info fromat "#COMMANDparameter$";
+void getUserCommand(String info)
+{
+
+  String command=info.substring(0,info.indexOf(","));
+   int commandLen=String(command).length()+1;
+  if (command ==IO_MODE_SET) {
+     writeEEP(info.substring(info.indexOf(IO_MODE_SET)+commandLen,info.indexOf("$")),IO_MODE_BeginEEPromAddress);
+  }
+  if (command ==IO_SET){
+     writeEEP(info.substring(info.indexOf(IO_SET)+commandLen,info.indexOf("$")),IO_SET_BeginEEPromAddress);
+  }
+ 
+  
+}
+
+void writeEEP(String info,int startAddress)
+{
+   int len=info.length();
+   
+   for(int i=0;i<len;i++)
+   {
+       EEPROM.write(startAddress,info.charAt(i));
+       startAddress++;
+   }
+}
 void writeEEP(String info,byte sign)
 {
    int startIndex=512;
